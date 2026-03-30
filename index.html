@@ -15,7 +15,7 @@
             66% { box-shadow: inset 0 0 100px rgba(0,0,255,0.3); }
             100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); }
         }
-        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; }
+        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; transition: 0.3s; }
         .talking { transform: scale(1.1); box-shadow: 0 0 20px var(--main-color); }
         #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
         .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; }
@@ -23,16 +23,16 @@
         .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; }
         .controls { display: flex; gap: 10px; max-width: 500px; margin: 0 auto; }
         input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #222; color: white; outline: none; }
-        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; color: black; }
         .color-btns { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
-        .dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+        .dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
     </style>
 </head>
 <body>
     <div id="glow" class="screen-glow"></div>
     <h2>Sára 🌸</h2>
     <img id="avatar" src="https://imgur.com">
-    <div id="chat"><div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme, fešáku? 😊</div></div>
+    <div id="chat"><div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme? 😊</div></div>
     <div class="controls">
         <input type="text" id="userInput" placeholder="Napiš kámošce..." onkeypress="if(event.key==='Enter') askAI()">
         <button onclick="askAI()">Poslat</button>
@@ -40,24 +40,25 @@
     <div class="color-btns">
         <div class="dot" style="background:#ffafcc" onclick="changeColor('#ffafcc', false)"></div>
         <div class="dot" style="background:#bde0fe" onclick="changeColor('#bde0fe', false)"></div>
-        <div class="dot" style="background:linear-gradient(to right, red, green, blue)" onclick="changeColor('#fff', true)"></div>
+        <div class="dot" style="background:linear-gradient(to right, red, green, blue)" onclick="changeColor('#ffafcc', true)"></div>
     </div>
 
     <script>
-        // SEM DOPLŇ SVŮJ API KLÍČ MEZI UVOZOVKY:
-        const apiKey = "AIzaSyDI3kNnRCs2oEPSc6vL2y7QZZuDd6KjZMI"; 
+        const apiKey = "VLOŽ_SEM_SVŮJ_KLÍČ"; 
         let history = [];
 
         function changeColor(color, rgb) {
             document.documentElement.style.setProperty('--main-color', color);
             const glow = document.getElementById('glow');
-            if(rgb) glow.classList.add('rgb-effect'); else glow.classList.remove('rgb-effect');
+            if(rgb) { glow.classList.add('rgb-effect'); } 
+            else { glow.classList.remove('rgb-effect'); }
         }
 
         async function askAI() {
             const input = document.getElementById('userInput');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || apiKey === "VLOŽ_SEM_SVŮJ_KLÍČ") return;
+
             const chat = document.getElementById('chat');
             chat.innerHTML += `<div class="msg user">${text}</div>`;
             input.value = "";
@@ -75,17 +76,24 @@
                     })
                 });
                 const data = await response.json();
+                
+                // TADY JE TA OPRAVA (přidané nuly):
                 const reply = data.candidates[0].content.parts[0].text;
+
                 history.push({ role: "model", parts: });
                 chat.innerHTML += `<div class="msg sara">${reply}</div>`;
                 chat.scrollTop = chat.scrollHeight;
+
                 const utterance = new SpeechSynthesisUtterance(reply);
                 utterance.lang = 'cs-CZ';
                 const avatar = document.getElementById('avatar');
                 utterance.onstart = () => avatar.classList.add('talking');
                 utterance.onend = () => avatar.classList.remove('talking');
                 window.speechSynthesis.speak(utterance);
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err);
+                document.getElementById('chat').innerHTML += `<div style="color:red; font-size:12px;">Chyba: Zkontroluj API klíč!</div>`;
+            }
         }
     </script>
 </body>
