@@ -6,16 +6,11 @@
     <title>Sára - Tvoje Kámoška</title>
     <style>
         :root { --main-color: #ffafcc; --bg-color: #0f0f0f; }
-        body { background: var(--bg-color); color: var(--main-color); font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.5s; overflow-x: hidden; }
+        body { background: var(--bg-color); color: var(--main-color); font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.5s; }
         .screen-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 100px rgba(255,175,204,0.1); z-index: -1; }
         .rgb-effect { animation: rgbGlow 5s infinite linear; }
-        @keyframes rgbGlow {
-            0% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); }
-            33% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); }
-            66% { box-shadow: inset 0 0 100px rgba(0,0,255,0.3); }
-            100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); }
-        }
-        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; transition: 0.3s; }
+        @keyframes rgbGlow { 0% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } 33% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); } 66% { box-shadow: inset 0 0 100px rgba(0,0,255,0.3); } 100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } }
+        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; }
         .talking { transform: scale(1.1); box-shadow: 0 0 20px var(--main-color); }
         #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
         .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; }
@@ -57,12 +52,13 @@
         async function askAI() {
             const input = document.getElementById('userInput');
             const text = input.value.trim();
-            if (!text || apiKey === "VLOŽ_SEM_SVŮJ_KLÍČ") return;
+            if (!text) return;
 
             const chat = document.getElementById('chat');
             chat.innerHTML += `<div class="msg user">${text}</div>`;
             input.value = "";
             chat.scrollTop = chat.scrollHeight;
+
             history.push({ role: "user", parts: });
 
             try {
@@ -75,9 +71,8 @@
                         ]
                     })
                 });
+
                 const data = await response.json();
-                
-                // TADY JE TA OPRAVA (přidané nuly):
                 const reply = data.candidates[0].content.parts[0].text;
 
                 history.push({ role: "model", parts: });
@@ -91,8 +86,8 @@
                 utterance.onend = () => avatar.classList.remove('talking');
                 window.speechSynthesis.speak(utterance);
             } catch (err) { 
-                console.error(err);
-                document.getElementById('chat').innerHTML += `<div style="color:red; font-size:12px;">Chyba: Zkontroluj API klíč!</div>`;
+                console.error(err); 
+                document.getElementById('chat').innerHTML += `<div style="color:red; font-size:12px;">Sára: Ups, něco se nepovedlo. Zkus to znovu!</div>`;
             }
         }
     </script>
