@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sára - Tvoje Kámoška</title>
+    <style>
+        :root { --main-color: #ffafcc; --bg-color: #0f0f0f; }
+        body { background: var(--bg-color); color: var(--main-color); font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.5s; overflow-x: hidden; }
+        .screen-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 100px rgba(255,175,204,0.1); z-index: -1; }
+        .rgb-effect { animation: rgbGlow 5s infinite linear; }
+        @keyframes rgbGlow {
+            0% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); }
+            33% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); }
+            66% { box-shadow: inset 0 0 100px rgba(0,0,255,0.3); }
+            100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); }
+        }
+        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; }
+        .talking { transform: scale(1.1); box-shadow: 0 0 20px var(--main-color); }
+        #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; }
+        .user { background: #333; align-self: flex-end; color: white; }
+        .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; }
+        .controls { display: flex; gap: 10px; max-width: 500px; margin: 0 auto; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #222; color: white; outline: none; }
+        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        .color-btns { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
+        .dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+    </style>
+</head>
+<body>
+    <div id="glow" class="screen-glow"></div>
+    <h2>Sára 🌸</h2>
+    <img id="avatar" src="https://imgur.com">
+    <div id="chat"><div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme, fešáku? 😊</div></div>
+    <div class="controls">
+        <input type="text" id="userInput" placeholder="Napiš kámošce..." onkeypress="if(event.key==='Enter') askAI()">
+        <button onclick="askAI()">Poslat</button>
+    </div>
+    <div class="color-btns">
+        <div class="dot" style="background:#ffafcc" onclick="changeColor('#ffafcc', false)"></div>
+        <div class="dot" style="background:#bde0fe" onclick="changeColor('#bde0fe', false)"></div>
+        <div class="dot" style="background:linear-gradient(to right, red, green, blue)" onclick="changeColor('#fff', true)"></div>
+    </div>
+
+    <script>
+        // SEM DOPLŇ SVŮJ API KLÍČ MEZI UVOZOVKY:
+        const apiKey = "AIzaSyDI3kNnRCs2oEPSc6vL2y7QZZuDd6KjZMI"; 
+        let history = [];
+
+        function changeColor(color, rgb) {
+            document.documentElement.style.setProperty('--main-color', color);
+            const glow = document.getElementById('glow');
+            if(rgb) glow.classList.add('rgb-effect'); else glow.classList.remove('rgb-effect');
+        }
+
+        async function askAI() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const chat = document.getElementById('chat');
+            chat.innerHTML += `<div class="msg user">${text}</div>`;
+            input.value = "";
+            chat.scrollTop = chat.scrollHeight;
+            history.push({ role: "user", parts: });
+
+            try {
+                const response = await fetch(`https://googleapis.com{apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents:},
+                            ...history
+                        ]
+                    })
+                });
+                const data = await response.json();
+                const reply = data.candidates[0].content.parts[0].text;
+                history.push({ role: "model", parts: });
+                chat.innerHTML += `<div class="msg sara">${reply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+                const utterance = new SpeechSynthesisUtterance(reply);
+                utterance.lang = 'cs-CZ';
+                const avatar = document.getElementById('avatar');
+                utterance.onstart = () => avatar.classList.add('talking');
+                utterance.onend = () => avatar.classList.remove('talking');
+                window.speechSynthesis.speak(utterance);
+            } catch (err) { console.error(err); }
+        }
+    </script>
+</body>
+</html>
