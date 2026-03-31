@@ -10,30 +10,38 @@
         .screen-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 100px rgba(255,175,204,0.1); z-index: -1; }
         .rgb-effect { animation: rgbGlow 5s infinite linear; }
         @keyframes rgbGlow { 0% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } 33% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); } 66% { box-shadow: inset 0 0 100px rgba(0,0,255,0.3); } 100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } }
-        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; transition: 0.3s; }
-        .talking { transform: scale(1.1); box-shadow: 0 0 20px var(--main-color); }
+        
+        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; transition: 0.3s; background: #222; }
+        .talking { transform: scale(1.1); box-shadow: 0 0 25px var(--main-color); }
+        
         #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
         .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; word-wrap: break-word; }
         .user { background: #333; align-self: flex-end; color: white; }
-        .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; }
+        .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; transition: background 0.5s; }
+        
         .controls { display: flex; gap: 10px; max-width: 500px; margin: 0 auto; }
-        input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #222; color: white; outline: none; }
-        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; color: black; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
-        .color-btns { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
-        .dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+        input { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #333; background: #222; color: white; outline: none; }
+        input:focus { border-color: var(--main-color); }
+        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; color: black; transition: 0.3s; }
+        
+        .color-btns { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        .dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: 0.2s; }
     </style>
 </head>
 <body>
     <div id="glow" class="screen-glow"></div>
     <h2>Sára 🌸</h2>
-    <!-- Nezapomeň sem dát platný odkaz na obrázek -->
     <img id="avatar" src="https://imgur.com" alt="Sára">
-    <div id="chat"><div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme? 😊</div></div>
+    
+    <div id="chat">
+        <div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme? 😊</div>
+    </div>
+
     <div class="controls">
         <input type="text" id="userInput" placeholder="Napiš kámošce..." onkeypress="if(event.key==='Enter') askAI()">
         <button onclick="askAI()">Poslat</button>
     </div>
+
     <div class="color-btns">
         <div class="dot" style="background:#ffafcc" onclick="changeColor('#ffafcc', false)"></div>
         <div class="dot" style="background:#bde0fe" onclick="changeColor('#bde0fe', false)"></div>
@@ -41,7 +49,8 @@
     </div>
 
     <script>
-        const apiKey = "AIzaSyDI3kNnRCs2oEPSc6vL2y7QZZuDd6KjZMI"; 
+        
+        const apiKey = "AIzaSyDqolS4FAxBg6qXxQUqHiM-nmFrUN3c5Mg"; 
         let history = [];
 
         function changeColor(color, rgb) {
@@ -51,7 +60,7 @@
                 glow.classList.add('rgb-effect'); 
             } else { 
                 glow.classList.remove('rgb-effect');
-                glow.style.boxShadow = `inset 0 0 100px ${color}33`; // Přidá jemnou záři barvy
+                glow.style.boxShadow = `inset 0 0 100px ${color}44`;
             }
         }
 
@@ -65,7 +74,6 @@
             input.value = "";
             chat.scrollTop = chat.scrollHeight;
 
-            // Uložení do historie ve formátu pro Gemini
             history.push({ role: "user", parts: [{ text: text }] });
 
             try {
@@ -74,14 +82,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: history,
-                        systemInstruction: { parts: [{ text: "Jsi Sára, veselá a empatická kamarádka. Mluv česky, neformálně a používej emoji." }] }
+                        systemInstruction: { parts: [{ text: "Jsi Sára, veselá kámoška. Mluv česky, neformálně a používej emoji." }] }
                     })
                 });
 
                 const data = await response.json();
                 
-                if (data.error) throw new Error(data.error.message);
-
+                // Oprava cesty k textu odpovědi
                 const reply = data.candidates[0].content.parts[0].text;
 
                 history.push({ role: "model", parts: [{ text: reply }] });
@@ -98,8 +105,7 @@
 
             } catch (err) { 
                 console.error(err); 
-                chat.innerHTML += `<div style="color:red; font-size:12px; margin-top:5px;">Sára: Ups, něco se nepovedlo. Zkontroluj klíč v kódu!</div>`;
-                chat.scrollTop = chat.scrollHeight;
+                chat.innerHTML += `<div style="color:#ff4d4d; font-size:12px; margin-top:5px;">Sára: Ups, něco se nepovedlo. Zkontroluj klíč!</div>`;
             }
         }
     </script>
