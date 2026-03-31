@@ -47,6 +47,13 @@ button {
     border-radius:10px;
     cursor:pointer;
 }
+
+input {
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    width:70%;
+}
 </style>
 </head>
 
@@ -68,11 +75,11 @@ button {
 
 <script>
 
-/* 🔑 SEM VLOŽ TVŮJ GOOGLE API KLÍČ */
+/* 🔑 SEM VLOŽ SVŮJ GOOGLE API KLÍČ */
 const apiKey = "AIzaSyClNSPnc_6wFxSm6nxqEuaHTkqwbxpfPlU";
 
-/* endpoint */
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+/* ✅ OPRAVENÝ MODEL */
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
 let history = [];
 
@@ -103,11 +110,18 @@ async function send(){
             method:"POST",
             headers:{ "Content-Type":"application/json" },
             body:JSON.stringify({
-                contents:history
+                contents: history
             })
         });
 
         const data = await res.json();
+
+        /* 🔍 DEBUG DO KONZOLE */
+        console.log("ODPOVĚĎ API:", data);
+
+        if(data.error){
+            throw new Error(data.error.message);
+        }
 
         const reply = data.candidates[0].content.parts[0].text;
 
@@ -120,8 +134,8 @@ async function send(){
         speak(reply);
 
     }catch(e){
-        addMessage("Chyba API ❌","sara");
-        console.error(e);
+        console.error("CHYBA:", e);
+        addMessage("Chyba: " + e.message,"sara");
     }
 }
 
