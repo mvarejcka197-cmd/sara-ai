@@ -3,101 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sára - Tvoje Kámoška</title>
+    <title>Sára 🌸</title>
     <style>
         :root { --main-color: #ffafcc; --bg-color: #0f0f0f; }
-        body { background: var(--bg-color); color: var(--main-color); font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.5s; overflow-x: hidden; }
-        .screen-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 100px rgba(255,175,204,0.1); z-index: -1; }
-        .rgb-effect { animation: rgbGlow 5s infinite linear; }
-        @keyframes rgbGlow { 0% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } 33% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); } 66% { box-shadow: inset 0 0 100px rgba(0,255,0,0.3); } 100% { box-shadow: inset 0 0 100px rgba(255,0,0,0.3); } }
-        img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--main-color); object-fit: cover; margin-bottom: 10px; transition: 0.3s; background: #222; }
-        .talking { transform: scale(1.1); box-shadow: 0 0 25px var(--main-color); }
-        #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; word-wrap: break-word; }
-        .user { background: #333; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
-        .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; border-bottom-left-radius: 2px; }
+        body { background: var(--bg-color); color: var(--main-color); font-family: sans-serif; text-align: center; padding: 20px; transition: 0.5s; }
+        #chat { background: rgba(255,255,255,0.05); border-radius: 20px; height: 350px; overflow-y: auto; padding: 15px; margin: 15px auto; max-width: 500px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 15px; text-align: left; }
+        .user { background: #333; align-self: flex-end; color: white; }
+        .sara { background: var(--main-color); align-self: flex-start; color: black; font-weight: 500; }
         .controls { display: flex; gap: 10px; max-width: 500px; margin: 0 auto; }
-        input { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #444; background: #222; color: white; outline: none; }
-        input:focus { border-color: var(--main-color); }
-        button { background: var(--main-color); border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; color: black; transition: 0.2s; }
-        .color-btns { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-        .dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: 0.2s; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #333; background: #222; color: white; outline: none; }
+        button { background: var(--main-color); border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; color: black; }
     </style>
 </head>
 <body>
-    <div id="glow" class="screen-glow"></div>
     <h2>Sára 🌸</h2>
-    <img id="avatar" src="https://imgur.com" alt="Sára">
-    <div id="chat"><div class="msg sara">Ahoj! Jsem tvoje Sára. O čem dneska pokecáme? 😊</div></div>
+    <div id="chat"><div class="msg sara">Ahoj! Zadej svůj API klíč, abychom si mohli psát. 😊</div></div>
     <div class="controls">
-        <input type="text" id="userInput" placeholder="Napiš kámošce..." onkeypress="if(event.key==='Enter') askAI()">
+        <input type="text" id="userInput" placeholder="Napiš zprávu nebo vlož klíč..." onkeypress="if(event.key==='Enter') askAI()">
         <button onclick="askAI()">Poslat</button>
-    </div>
-    <div class="color-btns">
-        <div class="dot" style="background:#ffafcc" onclick="changeColor('#ffafcc', false)"></div>
-        <div class="dot" style="background:#bde0fe" onclick="changeColor('#bde0fe', false)"></div>
-        <div class="dot" style="background:linear-gradient(45deg, red, yellow, green, cyan, blue, magenta)" onclick="changeColor('#ffafcc', true)"></div>
     </div>
 
     <script>
-        // TVŮJ AKTIVNÍ KLÍČ
-        const apiKey = "AIzaSyDqo1S4FAxBg6qXxQUqHiM-nmFrUN3c5Mg"; 
+        let apiKey = localStorage.getItem('sara_key') || "";
         let history = [];
-
-        function changeColor(color, rgb) {
-            document.documentElement.style.setProperty('--main-color', color);
-            const glow = document.getElementById('glow');
-            if(rgb) { glow.classList.add('rgb-effect'); } 
-            else { 
-                glow.classList.remove('rgb-effect');
-                glow.style.boxShadow = `inset 0 0 100px ${color}44`;
-            }
-        }
 
         async function askAI() {
             const input = document.getElementById('userInput');
             const text = input.value.trim();
             if (!text) return;
 
+            // Pokud klíč nemáme, uložíme ho z prvního vstupu
+            if (!apiKey) {
+                apiKey = text;
+                localStorage.setItem('sara_key', text);
+                input.value = "";
+                document.getElementById('chat').innerHTML += `<div class="msg sara">Klíč uložen! Teď mi můžeš napsat cokoli. ✨</div>`;
+                return;
+            }
+
             const chat = document.getElementById('chat');
             chat.innerHTML += `<div class="msg user">${text}</div>`;
             input.value = "";
             chat.scrollTop = chat.scrollHeight;
 
-            history.push({ role: "user", parts: [{ text: text }] });
+            history.push({ role: "user", parts: });
 
             try {
                 const response = await fetch("https://googleapis.com" + apiKey, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: history,
-                        systemInstruction: { parts: [{ text: "Jsi Sára, nejlepší kámoška. Mluv česky, neformálně a používej emoji." }] }
-                    })
+                    body: JSON.stringify({ contents: history })
                 });
 
                 const data = await response.json();
-                
-                // Tady byla ta hlavní chyba - chyběly indexy [0]
-                if (data.candidates && data.candidates[0].content) {
-                    const reply = data.candidates[0].content.parts[0].text;
+                const reply = data.candidates[0].content.parts[0].text;
 
-                    history.push({ role: "model", parts: [{ text: reply }] });
-                    chat.innerHTML += `<div class="msg sara">${reply}</div>`;
-                    chat.scrollTop = chat.scrollHeight;
-
-                    const utterance = new SpeechSynthesisUtterance(reply);
-                    utterance.lang = 'cs-CZ';
-                    const avatar = document.getElementById('avatar');
-                    utterance.onstart = () => avatar.classList.add('talking');
-                    utterance.onend = () => avatar.classList.remove('talking');
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    throw new Error("API neodpovídá správně");
-                }
-            } catch (err) { 
-                console.error(err);
-                chat.innerHTML += `<div style="color:#ff4d4d; font-size:12px;">Sára: Ups, spojení spadlo. Zkus to znovu!</div>`;
+                history.push({ role: "model", parts: });
+                chat.innerHTML += `<div class="msg sara">${reply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+            } catch (err) {
+                chat.innerHTML += `<div style="color:red; font-size:10px;">Chyba: Zkontroluj klíč! Možná ho Google smazal.</div>`;
             }
         }
     </script>
