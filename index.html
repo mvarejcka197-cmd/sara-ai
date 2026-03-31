@@ -78,8 +78,8 @@ input {
 /* 🔑 SEM VLOŽ SVŮJ GOOGLE API KLÍČ */
 const apiKey = "AIzaSyClNSPnc_6wFxSm6nxqEuaHTkqwbxpfPlU";
 
-/* ✅ OPRAVENÝ MODEL */
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+/* ✅ SPRÁVNÝ ENDPOINT + MODEL */
+const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
 let history = [];
 
@@ -116,8 +116,7 @@ async function send(){
 
         const data = await res.json();
 
-        /* 🔍 DEBUG DO KONZOLE */
-        console.log("ODPOVĚĎ API:", data);
+        console.log("API ODPOVĚĎ:", data);
 
         if(data.error){
             throw new Error(data.error.message);
